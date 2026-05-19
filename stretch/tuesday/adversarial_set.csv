@@ -1,4 +1,31 @@
 qid,question,context,gold_answer,pattern_tag
-EX_01,REPLACE_WITH_YOUR_QUESTION,REPLACE_WITH_YOUR_CONTEXT_THAT_CONTAINS_THE_GOLD_ANSWER_AS_A_LITERAL_SUBSTRING,REPLACE_WITH_GOLD,your-pattern-tag
-EX_02,REPLACE_WITH_YOUR_QUESTION,REPLACE_WITH_YOUR_CONTEXT,REPLACE_WITH_GOLD,your-pattern-tag
-EX_03,REPLACE_WITH_A_CONTROL_QUESTION_THAT_THE_MODEL_SHOULD_GET_RIGHT,REPLACE_WITH_AN_EASY_VERSION_OF_THE_PATTERN,REPLACE_WITH_GOLD,control
+ADV_001,Who won the match?,"Real Madrid dominated possession, but Bayern Munich won the final match after extra time.",Bayern Munich,nearby_entity
+ADV_002,Who scored the winning goal?,"Lionel Messi assisted early plays, but Kylian Mbappé scored the winning goal in the last minute.",Kylian Mbappé,same_type_distractor
+ADV_003,Which team hired the coach?,"Chelsea considered several candidates, but Tottenham Hotspur hired the coach officially.",Tottenham Hotspur,nearby_entity
+ADV_004,Who became MVP?,"Stephen Curry had strong stats, but Giannis Antetokounmpo became MVP of the finals.",Giannis Antetokounmpo,same_type_distractor
+ADV_005,Who won the tournament?,"Argentina played well throughout, but France won the tournament after penalties.",France,nearby_entity
+ADV_006,Who is the captain?,"Harry Kane led attacks, but Virgil van Dijk was named team captain.",Virgil van Dijk,reversed_roles
+ADV_007,Who scored the most goals?,"Erling Haaland scored 6 goals, while Mbappé became top scorer with 8 goals.",Mbappé,same_type_distractor
+ADV_008,Which club signed the player?,"Manchester United was expected to sign him, but Manchester City completed the transfer.",Manchester City,nearby_entity
+ADV_009,Who coached the team?,"Pep Guardiola was mentioned in rumors, but Jurgen Klopp was the official coach.",Jurgen Klopp,same_type_distractor
+ADV_010,How many goals were scored?,"The match ended with high intensity, producing exactly 3 goals in total.",3,control_easy
+ADV_011,Who won the race?,"Lewis Hamilton led early laps, but Max Verstappen won the final race.",Max Verstappen,nearby_entity
+ADV_012,Who defended the title?,"Novak Djokovic was expected to win again, but Rafael Nadal defended the title successfully.",Rafael Nadal,nearby_entity
+ADV_013,Who won the UFC fight?,"Conor McGregor entered as favorite, but Dustin Poirier won by knockout.",Dustin Poirier,same_type_distractor
+ADV_014,Who captained the team?,"Cristiano Ronaldo played well, but Bruno Fernandes was appointed captain.",Bruno Fernandes,reversed_roles
+ADV_015,Which team won the league?,"Liverpool and Arsenal competed strongly, but Manchester City won the league.",Manchester City,nearby_entity
+ADV_016,Who scored the penalty?,"Harry Kane took leadership role, but Bukayo Saka scored the penalty.",Bukayo Saka,reversed_roles
+ADV_017,Who became manager?,"Several legends were present, but Erik ten Hag became manager of the club.",Erik ten Hag,same_type_distractor
+ADV_018,Who won the final?,"Brazil played aggressively, but Germany won the final match.",Germany,nearby_entity
+ADV_019,Who is the goalkeeper?,"Marcus Rashford led attack, but David de Gea was the goalkeeper.",David de Gea,same_type_distractor
+ADV_020,How many points were scored?,"The star player dominated, but the final score was 27 points.",27,control_easy
+ADV_021,Who transferred to PSG?,"Lionel Messi stayed in Spain rumors, but he transferred to PSG.",PSG,reversed_roles
+ADV_022,Who won the championship?,"The Lakers were favorites, but the Celtics won the championship.",Celtics,nearby_entity
+ADV_023,Who set the record?,"Usain Bolt was mentioned in commentary, but Noah Lyles set the new record.",Noah Lyles,same_type_distractor
+ADV_024,Which team drafted him?,"Knicks were linked early, but Lakers drafted the player.",Lakers,nearby_entity
+ADV_025,Who is the top scorer?,"Haaland assisted many plays, but Mbappé was top scorer.",Mbappé,same_type_distractor
+ADV_026,Who won the match?,"Italy controlled possession, but Spain won the match.",Spain,nearby_entity
+ADV_027,Who coached the team?,"Zidane was rumored, but Carlo Ancelotti coached the team.",Carlo Ancelotti,same_type_distractor
+ADV_028,Who won the fight?,"Israel Adesanya was expected to win, but Alex Pereira won the fight.",Alex Pereira,nearby_entity
+ADV_029,Who captained the team?,"Sergio Ramos influenced play, but Virgil van Dijk was captain.",Virgil van Dijk,reversed_roles
+ADV_030,Who won the tournament?,"Portugal performed well, but Argentina won the tournament.",Argentina,nearby_entity

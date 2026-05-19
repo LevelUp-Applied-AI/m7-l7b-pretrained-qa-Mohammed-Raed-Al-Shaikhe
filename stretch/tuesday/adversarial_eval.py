@@ -23,10 +23,10 @@ def load_adversarial_set(path: str = "stretch/tuesday/adversarial_set.csv") -> p
 
     Verifies columns: qid, question, context, gold_answer, pattern_tag.
     """
-    # TODO: read the CSV at the given path
-    # TODO: verify all five required columns exist; raise a clear error if any are missing
-    # TODO: return the DataFrame
-    raise NotImplementedError("load_adversarial_set not implemented")
+
+    df = pd.read_csv(path)
+
+    return df
 
 
 def evaluate_adversarial(qa, df: pd.DataFrame) -> dict:
@@ -35,16 +35,64 @@ def evaluate_adversarial(qa, df: pd.DataFrame) -> dict:
 
     Returns:
         {
-          "em": float, "f1": float, "n": int,
-          "per_pattern": { tag: {"em": float, "f1": float, "n": int}, ... },
-          "predictions": [ ... lab.evaluate_qa-shaped entries plus pattern_tag ... ],
+            "em": float, "f1": float, "n": int,
+            "per_pattern": { tag: {"em": float, "f1": float, "n": int}, ... },
+            "predictions": [ ... lab.evaluate_qa-shaped entries plus pattern_tag ... ],
         }
     """
-    # TODO: call lab.evaluate_qa for the aggregate metrics + predictions list
-    # TODO: enrich each prediction with its pattern_tag (lookup from df by qid)
-    # TODO: compute per-pattern aggregates (group by pattern_tag, mean em + f1, count)
-    # TODO: return the combined dict
-    raise NotImplementedError("evaluate_adversarial not implemented")
+    
+    predictions = []
+
+    total_em = 0
+    total_f1 = 0
+
+    per_pattern = {}
+
+    for _, row in df.iterrows():
+
+        pred = lab.predict_one(qa, row["question"], row["context"])
+
+        em = lab.exact_match(pred, row["gold_answer"])
+        f1 = lab.token_f1(pred, row["gold_answer"])
+
+        total_em += em
+        total_f1 += f1
+
+        tag = row["pattern_tag"]
+
+        if tag not in per_pattern:
+            per_pattern[tag] = {"em": 0, "f1": 0, "n": 0}
+
+        per_pattern[tag]["em"] += em
+        per_pattern[tag]["f1"] += f1
+        per_pattern[tag]["n"] += 1
+
+        predictions.append({
+            "qid": row["qid"],
+            "question": row["question"],
+            "context_excerpt": row["context"][:80],
+            "gold_answer": row["gold_answer"],
+            "predicted_answer": pred,
+            "em": em,
+            "f1": f1,
+            "pattern_tag": tag
+        })
+
+    # finalize averages
+    for tag in per_pattern:
+        n = per_pattern[tag]["n"]
+        per_pattern[tag]["em"] /= n
+        per_pattern[tag]["f1"] /= n
+
+    n = len(df)
+
+    return {
+        "em": total_em / n,
+        "f1": total_f1 / n,
+        "n": n,
+        "per_pattern": per_pattern,
+        "predictions": predictions
+    }
 
 
 def main() -> None:
