@@ -8,8 +8,10 @@ import json
 import os
 import re
 import string
+from collections import Counter
 
 import pandas as pd
+from transformers import pipeline
 
 
 # -- Helpers (provided — do NOT modify) --------------------------------------
@@ -45,8 +47,10 @@ def load_examples(data_path: str) -> pd.DataFrame:
     df = pd.read_csv(data_path)
     required = {"qid", "question", "context", "gold_answer"}
     missing = required - set(df.columns)
+
     if missing:
         raise ValueError(f"{data_path} is missing required columns: {missing}")
+
     return df
 
 
@@ -54,15 +58,26 @@ def load_examples(data_path: str) -> pd.DataFrame:
 
 def normalize_answer(s: str) -> str:
     """SQuAD-style normalization (see drill / reading)."""
-    # TODO: apply the four-step SQuAD normalization (lowercase, strip articles, strip punctuation, collapse whitespace);
-    #       remember the article strip needs word-boundary regex
-    raise NotImplementedError("normalize_answer not implemented")
+
+    # lowercase
+    s = s.lower()
+
+    # remove punctuation
+    s = "".join(ch for ch in s if ch not in string.punctuation)
+
+    # remove articles
+    s = re.sub(r"\b(a|an|the)\b", " ", s)
+
+    # collapse whitespace
+    s = " ".join(s.split())
+
+    return s
 
 
 def exact_match(pred: str, gold: str) -> int:
     """Return 1 if normalized prediction equals normalized gold."""
-    # TODO: compare normalized values, return int
-    raise NotImplementedError("exact_match not implemented")
+
+    return int(normalize_answer(pred) == normalize_answer(gold))
 
 
 def token_f1(pred: str, gold: str) -> float:
@@ -70,20 +85,45 @@ def token_f1(pred: str, gold: str) -> float:
     Token-F1 between prediction and gold after normalization.
 
     Empty handling:
-      - both empty -> 1.0
-      - one empty -> 0.0
+        - both empty -> 1.0
+        - one empty -> 0.0
     Returns float in [0.0, 1.0]; never NaN.
     """
-    # TODO: normalize, split, handle empty, compute multiset overlap, return F1
-    raise NotImplementedError("token_f1 not implemented")
+
+    pred_tokens = normalize_answer(pred).split()
+    gold_tokens = normalize_answer(gold).split()
+
+    # empty handling
+    if len(pred_tokens) == 0 and len(gold_tokens) == 0:
+        return 1.0
+
+    if len(pred_tokens) == 0 or len(gold_tokens) == 0:
+        return 0.0
+
+    # token overlap
+    common = Counter(pred_tokens) & Counter(gold_tokens)
+    num_same = sum(common.values())
+
+    if num_same == 0:
+        return 0.0
+
+    precision = num_same / len(pred_tokens)
+    recall = num_same / len(gold_tokens)
+
+    f1 = 2 * precision * recall / (precision + recall)
+
+    return f1
 
 
 # -- Task 2: Build the QA pipeline -------------------------------------------
 
 def build_qa_pipeline(model_name: str):
     """Construct a Hugging Face question-answering pipeline."""
-    # TODO: build a question-answering pipeline using the given model name (same as the drill)
-    raise NotImplementedError("build_qa_pipeline not implemented")
+
+    return pipeline(
+        "question-answering",
+        model=model_name
+    )
 
 
 # -- Task 3: Predict one answer ---------------------------------------------
@@ -94,8 +134,13 @@ def predict_one(qa, question: str, context: str) -> str:
 
     Returns the answer STRING only (not the full pipeline output dict).
     """
-    # TODO: invoke the pipeline on the (question, context) pair and return only the predicted answer string
-    raise NotImplementedError("predict_one not implemented")
+
+    result = qa(
+        question=question,
+        context=context
+    )
+
+    return result["answer"]
 
 
 # -- Task 4: Evaluate over the dataset ---------------------------------------
@@ -106,32 +151,78 @@ def evaluate_qa(qa, examples: pd.DataFrame) -> dict:
 
     Returns:
         {
-          "em": float,   # mean EM
-          "f1": float,   # mean token-F1
-          "n": int,
-          "predictions": [
+            "em": float,   # mean EM
+            "f1": float,   # mean token-F1
+            "n": int,
+            "predictions": [
             {qid, question, context_excerpt, gold_answer, predicted_answer, em, f1},
             ...
-          ],
+            ],
         }
     context_excerpt is the first 80 chars of the context (CSV-friendly).
     """
-    # TODO: iterate over examples, call predict_one, compute em + f1
-    # TODO: build predictions list, aggregate em/f1, return
-    raise NotImplementedError("evaluate_qa not implemented")
+
+    predictions = []
+
+    total_em = 0
+    total_f1 = 0
+
+    for _, row in examples.iterrows():
+
+        question = row["question"]
+        context = row["context"]
+        gold_answer = row["gold_answer"]
+
+        predicted_answer = predict_one(
+            qa,
+            question,
+            context
+        )
+
+        em = exact_match(predicted_answer, gold_answer)
+        f1 = token_f1(predicted_answer, gold_answer)
+
+        total_em += em
+        total_f1 += f1
+
+        predictions.append({
+            "qid": row["qid"],
+            "question": question,
+            "context_excerpt": context[:80],
+            "gold_answer": gold_answer,
+            "predicted_answer": predicted_answer,
+            "em": em,
+            "f1": f1
+        })
+
+    n = len(examples)
+
+    return {
+        "em": total_em / n,
+        "f1": total_f1 / n,
+        "n": n,
+        "predictions": predictions
+    }
 
 
 # -- Task 5: Orchestrate -----------------------------------------------------
 
 def main() -> None:
     """Load data, build pipeline, evaluate, write artifacts."""
+
     examples = load_examples(get_data_path())
+
     qa = build_qa_pipeline(get_qa_model_name())
+
     result = evaluate_qa(qa, examples)
 
     # Write predictions CSV
     pred_df = pd.DataFrame(result["predictions"])
-    pred_df.to_csv("qa_predictions.csv", index=False)
+
+    pred_df.to_csv(
+        "qa_predictions.csv",
+        index=False
+    )
 
     # Write metrics JSON
     metrics = {
@@ -140,6 +231,7 @@ def main() -> None:
         "n": result["n"],
         "model": get_qa_model_name(),
     }
+
     with open("qa_metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
 
